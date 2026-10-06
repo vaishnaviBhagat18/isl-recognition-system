@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+import numpy as np
 
 from hand_landmarks import extract_hand_landmarks
 
@@ -29,14 +30,24 @@ with mp_hands.Hands(
         )
 
         results = hands.process(rgb_frame)
+        
+        if results.multi_handedness:
+            labels = [
+                hand.classification[0].label
+                for hand in results.multi_handedness
+            ]
+
+            print("MediaPipe detected:", labels)
 
         landmarks = extract_hand_landmarks(results)
 
+        left_hand = landmarks[:63]
+        right_hand = landmarks[63:]
+
         print(
-            "Shape:",
-            landmarks.shape,
-            "| First 5 values:",
-            landmarks[:5]
+            "Shape:", landmarks.shape,
+            "| Left non-zero:", np.count_nonzero(left_hand),
+            "| Right non-zero:", np.count_nonzero(right_hand)
         )
 
         cv2.imshow(
